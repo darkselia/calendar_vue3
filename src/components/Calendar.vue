@@ -10,11 +10,13 @@ const {locale} = defineProps({
   locale: {
     type: String,
     default: 'en',
-    validator(value, props) {
+    validator(value) {
       return ['en', 'ru'].includes(value);
     }
   }
 });
+
+const emit = defineEmits(['date-selected']);
 
 const numberOfDaysInMonth = computed(() => {
   const year = displayedDate.value.getFullYear();
@@ -34,10 +36,12 @@ const firstDayOfMonth = computed(() => {
   return firstDayOfMonth;
 });
 
-const displayedDate = ref(new Date(modelValue.value));
-watch(() => modelValue.value, (newValue) => {
+const displayedDate = ref(new Date);
+
+watch(modelValue, (newValue) => {
+  if (!/^[12]\d{3}-([12]\d|0[1-9])-([12]\d|0[1-9])$/.test(modelValue.value)) return;
   displayedDate.value = new Date(newValue);
-});
+}, {immediate: true});
 
 const monthNames = {
   'en': [
@@ -63,6 +67,7 @@ function updateDateMonth(delta) {
 function updateDate(currentDay) {
   displayedDate.value.setDate(currentDay);
   modelValue.value = displayedDate.value.toISOString().slice(0, 10);
+  emit('date-selected', modelValue.value);
 }
 
 function checkCurrentDay(currentDay) {
@@ -137,7 +142,7 @@ function checkCurrentDay(currentDay) {
   gap: 2px;
 }
 
-.weeks-row{
+.weeks-row {
   margin-bottom: 5px;
   font-size: 12px;
 }
